@@ -1,17 +1,20 @@
 package com.example.filmsdb
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.android.synthetic.main.activity_main.*
 
 private const val LAST_SELECTED_FILM = "last_selected_film"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback {
 
     private lateinit var ep5Header: TextView
     private lateinit var ep7Header: TextView
@@ -21,6 +24,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (IS_DARK_MODE) setTheme(R.style.DarkTheme)
+
         setContentView(R.layout.activity_main)
 
         ep5Header = findViewById(R.id.ep_5_header)
@@ -46,6 +52,13 @@ class MainActivity : AppCompatActivity() {
             lastSelectedFilm = 3
             updateFilmHeaderColor(lastSelectedFilm)
             startFilmDescriptionActivity(R.drawable.episode_8, R.string.ep_8_description, this)
+        }
+
+        nightMode?.setOnClickListener { view ->
+            if (view is Switch) {
+                IS_DARK_MODE = view.isChecked
+            }
+            recreate()
         }
     }
 
@@ -110,11 +123,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        val dialog: Dialog = CustomDialog(this, getString(R.string.description_exit_conf), this)
+        dialog.show()
+    }
+
+    override fun onClickPositiveButton() {
+        finish()
+    }
+
+    override fun onClickNegativeButton() {
+    }
+
     companion object {
         const val FILM_INFO_REQUEST_CODE = 1
         const val IMAGE_ID = "image_id"
         const val FILM_DESCRIPTION = "film_description"
         const val IS_FILM_LIKED = "is_film_liked"
         const val FILM_COMMENT = "film_comment"
+        var IS_DARK_MODE = false
     }
 }

@@ -29,10 +29,10 @@
             android:id="@+id/film_description"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            style="@style/DescriptionStyle"
             android:layout_marginStart="@dimen/margin_16dp"
             android:layout_marginTop="@dimen/margin_16dp"
             android:layout_marginEnd="@dimen/margin_16dp"
-            android:textSize="@dimen/text_size_14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -40,21 +40,21 @@
             app:layout_constraintVertical_bias="0.04000002"
             tools:text="Amazing film!" />
 
-        <Button
+        <ImageButton
             android:id="@+id/button_invite"
+            android:src="@drawable/ic_invite_friend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_16dp"
             android:layout_marginTop="@dimen/margin_16dp"
             android:text="@string/button_invite"
-
             app:layout_constraintBottom_toBottomOf="parent"
-
             app:layout_constraintEnd_toStartOf="@+id/film_liked"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/film_description"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintVertical_bias="0.0"
+            android:contentDescription="@string/friend_invite_button_description" />
 
         <CheckBox
             android:id="@+id/film_liked"
@@ -62,7 +62,6 @@
             android:layout_height="wrap_content"
             android:text="@string/film_liked"
             app:layout_constraintBottom_toBottomOf="@+id/button_invite"
-
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/button_invite"
