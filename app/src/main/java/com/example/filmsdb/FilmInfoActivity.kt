@@ -9,23 +9,22 @@ import androidx.appcompat.app.AppCompatActivity
 class FilmInfoActivity : AppCompatActivity() {
 
     private var filmImage: Int = 0
-    private var filmDescription: Int = 0
+    private var filmDescription: String? = "Не удалось загрузить"
     private lateinit var filmLiked: CheckBox
     private lateinit var filmComment: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         if (MainActivity.IS_DARK_MODE) setTheme(R.style.DarkTheme)
 
         setContentView(R.layout.activity_film_info)
 
-        filmImage = intent.getIntExtra(MainActivity.IMAGE_ID, 0)
-        filmDescription = intent.getIntExtra(MainActivity.FILM_DESCRIPTION, 0)
+        filmImage = intent.getIntExtra(IMAGE_ID, 0)
+        filmDescription = intent.getStringExtra(FILM_DESCRIPTION)
 
         if (savedInstanceState != null) {
-            filmImage = savedInstanceState.getInt(MainActivity.IMAGE_ID)
-            filmDescription = savedInstanceState.getInt(MainActivity.FILM_DESCRIPTION)
+            filmImage = savedInstanceState.getInt(IMAGE_ID)
+            filmDescription = savedInstanceState.getString(FILM_DESCRIPTION)
         }
         updateFilmViews(filmImage, filmDescription)
 
@@ -40,14 +39,14 @@ class FilmInfoActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(MainActivity.IMAGE_ID, filmImage)
-        outState.putInt(MainActivity.FILM_DESCRIPTION, filmDescription)
+        outState.putInt(IMAGE_ID, filmImage)
+        outState.putString(FILM_DESCRIPTION, filmDescription)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        filmImage = savedInstanceState.getInt(MainActivity.IMAGE_ID)
-        filmDescription = savedInstanceState.getInt(MainActivity.FILM_DESCRIPTION)
+        filmImage = savedInstanceState.getInt(IMAGE_ID)
+        filmDescription = savedInstanceState.getString(FILM_DESCRIPTION)
         updateFilmViews(filmImage, filmDescription)
     }
 
@@ -59,17 +58,15 @@ class FilmInfoActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
-    private fun updateFilmViews(filmImage: Int, filmDescription: Int) {
+    private fun updateFilmViews(filmImage: Int, filmDescription: String?) {
 
         if (filmImage != 0) {
             val filmImageView = findViewById<ImageView>(R.id.film_image)
             filmImageView.setImageResource(filmImage)
         }
 
-        if (filmDescription != 0) {
-            val filmDescriptionView = findViewById<TextView>(R.id.film_description)
-            filmDescriptionView.setText(filmDescription)
-        }
+        val filmDescriptionView = findViewById<TextView>(R.id.film_description)
+        filmDescriptionView.text = filmDescription
     }
 
     private fun sendEmail(textMessage: String) {
@@ -80,6 +77,19 @@ class FilmInfoActivity : AppCompatActivity() {
         sendIntent.type = "text/plain"
         sendIntent.resolveActivity(packageManager)?.let {
             startActivity(sendIntent)
+        }
+    }
+
+    companion object {
+
+        const val IMAGE_ID = "image_id"
+        const val FILM_DESCRIPTION = "film_description"
+
+        fun startFilmDescriptionActivity(filmItem: FilmItem, activity: Activity) {
+            val intent = Intent(activity, FilmInfoActivity::class.java)
+            intent.putExtra(IMAGE_ID, filmItem.imageId)
+            intent.putExtra(FILM_DESCRIPTION, filmItem.description)
+            activity.startActivityForResult(intent, MainActivity.FILM_INFO_REQUEST_CODE)
         }
     }
 }

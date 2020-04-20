@@ -1,5 +1,6 @@
 <resources>
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowDisablePreview">true</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -16,9 +17,13 @@
     </style>
 
     <style name="DarkTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
-<!--        &lt;!&ndash; Customize your theme here. &ndash;&gt;-->
-<!--        <item name="colorPrimary">@color/primaryColorAmber</item>-->
-<!--        <item name="colorPrimaryDark">@color/primaryDarkColorAmber</item>-->
-<!--        <item name="colorAccent">@color/secondaryColorAmber</item>-->
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+
+    <style name="Widget.Button.Toggle" parent="android:Widget">
+        <item name="android:background">@drawable/btn_toggle_bg</item>
+        <item name="android:textOn" />
+        <item name="android:textOff" />
+        <item name="android:disabledAlpha">?android:attr/disabledAlpha</item>
     </style>
 </resources>
