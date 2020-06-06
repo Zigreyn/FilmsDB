@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Films DB</string>
+    <string name="button_details">Details</string>
+    <string name="button_invite">Invite Friend</string>
+    <string name="film_liked">Like</string>
+    <string name="dialog_button_no">No</string>
+    <string name="dialog_button_yes">Yes</string>
+    <string name="dialog_header">Warning!</string>
+</resources>

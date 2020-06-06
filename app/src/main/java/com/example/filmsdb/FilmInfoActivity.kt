@@ -15,6 +15,9 @@ class FilmInfoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (MainActivity.IS_DARK_MODE) setTheme(R.style.DarkTheme)
+
         setContentView(R.layout.activity_film_info)
 
         filmImage = intent.getIntExtra(MainActivity.IMAGE_ID, 0)
@@ -26,7 +29,7 @@ class FilmInfoActivity : AppCompatActivity() {
         }
         updateFilmViews(filmImage, filmDescription)
 
-        val buttonInvite = findViewById<Button>(R.id.button_invite)
+        val buttonInvite = findViewById<ImageButton>(R.id.button_invite)
         buttonInvite.setOnClickListener {
             sendEmail(getString(R.string.invite_message))
         }
