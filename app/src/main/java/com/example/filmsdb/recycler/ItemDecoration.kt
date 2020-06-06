@@ -1,10 +1,11 @@
-package com.example.filmsdb
+package com.example.filmsdb.recycler
 
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.filmsdb.R
 
 class ItemDecoration(
     context: Context,
@@ -15,7 +16,9 @@ class ItemDecoration(
     private var divider: Drawable? = null
 
     init {
-        divider = ContextCompat.getDrawable(context, R.drawable.divider_custom)
+        divider = ContextCompat.getDrawable(context,
+            R.drawable.divider_custom
+        )
     }
 
     override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {

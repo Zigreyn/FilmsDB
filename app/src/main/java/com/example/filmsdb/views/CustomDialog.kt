@@ -1,10 +1,11 @@
-package com.example.filmsdb
+package com.example.filmsdb.views
 
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import com.example.filmsdb.R
 
 class CustomDialog(
     context: Context,

@@ -1,31 +1,49 @@
 package com.example.filmsdb
 
-import android.app.Activity
 import android.app.Dialog
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Switch
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.android.synthetic.main.activity_main.*
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
+import androidx.fragment.app.ListFragment
+import com.example.filmsdb.model.FilmItem
+import com.example.filmsdb.recycler.ItemClickListener
+import com.example.filmsdb.views.CustomDialog
+import com.example.filmsdb.views.FilmInfoFragment
+import com.example.filmsdb.views.FilmListFragment
+import com.example.filmsdb.views.LikedFilmsFragment
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 
-private const val LAST_SELECTED_FILM = "last_selected_film"
+class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback,
+    ItemClickListener, NavigationView.OnNavigationItemSelectedListener {
 
-class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback, ItemClickListener {
-
-    private var lastSelectedFilm: Int = 0
     private lateinit var items: ArrayList<FilmItem>
+    private var navigationView: NavigationView? = null
+    private var drawer: DrawerLayout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (IS_DARK_MODE) setTheme(R.style.DarkTheme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        this.setSupportActionBar(toolbar)
+
+        drawer = findViewById(R.id.drawer_layout)
+        val toggle = ActionBarDrawerToggle(
+            this, drawer, toolbar,
+            R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        )
+        drawer?.addDrawerListener(toggle)
+        toggle.syncState()
+
+        navigationView = findViewById(R.id.nav_view)
+        navigationView?.setNavigationItemSelectedListener(this)
 
         items = arrayListOf(
             FilmItem(
@@ -71,88 +89,30 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback, ItemClic
                 false
             )
         )
-
-        initRecycler()
-
-        nightMode?.isChecked = IS_DARK_MODE
-        nightMode?.setOnClickListener { view ->
-            view as Switch
-            IS_DARK_MODE = view.isChecked
-            recreate()
-        }
+        showFilmsFragment(items)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(LAST_SELECTED_FILM, lastSelectedFilm)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        lastSelectedFilm = savedInstanceState.getInt(LAST_SELECTED_FILM)
-    }
-
-    override fun onActivityResult(
-        requestCode: Int, resultCode: Int,
-        data: Intent?
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == FILM_INFO_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            var isLiked: Boolean? = null
-            var filmComment: String? = null
-
-            data?.let {
-                isLiked = data.getBooleanExtra(IS_FILM_LIKED, false)
-                filmComment = data.getStringExtra(FILM_COMMENT)
-            }
-
-            Log.d("Home Work", "Понравился фильм: $isLiked")
-            Log.d("Home Work", "Комментрай к фильму: $filmComment")
-        } else if (requestCode == FILM_FAVORITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-
-            val likedFilms: ArrayList<FilmItem> =
-                (data?.getParcelableArrayListExtra<FilmItem>(FavoriteFilmsActivity.FAVORITE_FILMS)) as ArrayList
-            revalidateFilmList(likedFilms)
-            filmRecycler.adapter?.notifyDataSetChanged()
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.favorite_films) {
-            val filtered = items.filter { it.isFavorite }
-            FavoriteFilmsActivity.startFavoriteFilmsActivity(filtered as ArrayList<FilmItem>, this)
-        }
-        return true
-    }
-
-    private fun initRecycler() {
-        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        val filmsAdapter = FilmsAdapter(LayoutInflater.from(this), items, this)
-        filmRecycler?.layoutManager = layoutManager
-        filmRecycler?.adapter = filmsAdapter
-        filmRecycler.addItemDecoration(
-            ItemDecoration(
-                this as Activity, 80,
-                80
-            )
-        )
-//        filmRecycler?.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
-    }
-
-    private fun revalidateFilmList(favoriteFilms: ArrayList<FilmItem>) {
+    private fun revalidateFilmList(favoriteFilms: ArrayList<FilmItem>?) {
         items.forEach {
-            if (!favoriteFilms.contains(it)) it.isFavorite = false
+            if (favoriteFilms != null) {
+                if (!favoriteFilms.contains(it)) {
+                    it.isFavorite = false
+                }
+            }
         }
     }
 
     override fun onBackPressed() {
-        val dialog: Dialog = CustomDialog(this, getString(R.string.description_exit_conf), this)
-        dialog.show()
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            super.onBackPressed()
+        } else {
+            val dialog: Dialog = CustomDialog(
+                this,
+                getString(R.string.description_exit_conf),
+                this
+            )
+            dialog.show()
+        }
     }
 
     override fun onClickPositiveButton() {
@@ -161,21 +121,63 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback, ItemClic
 
     override fun onClickNegativeButton() {}
 
-    override fun onItemClick(position: Int, view: View) {
-        FilmInfoActivity.startFilmDescriptionActivity(items[position], this)
+    override fun onItemClick(position: Int) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, FilmInfoFragment.newInstance(items[position]))
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onLikeClick(position: Int, isChecked: Boolean) {
-        items[position].isFavorite = isChecked
+        val fragment = supportFragmentManager.findFragmentByTag(FilmListFragment.TAG)
+        if (fragment != null) {
+            if (fragment.isVisible) {
+                items[position].isFavorite = isChecked
+
+                val snack = drawer?.let { Snackbar.make(it, "Успешно!", Snackbar.LENGTH_SHORT) }
+                snack?.setAction("Отменить") {
+                    items[position].isFavorite = !isChecked
+                    (fragment as FilmListFragment).notifyAdapter(position)
+                }
+                snack?.show()
+            }
+        }
     }
 
-    override fun onRemoveClick(position: Int) {}
+    override fun onRemoveClick(position: Int, items: ArrayList<FilmItem>?) {
+        revalidateFilmList(items)
+    }
 
-    companion object {
-        const val FILM_INFO_REQUEST_CODE = 1
-        const val FILM_FAVORITE_REQUEST_CODE = 2
-        const val IS_FILM_LIKED = "is_film_liked"
-        const val FILM_COMMENT = "film_comment"
-        var IS_DARK_MODE = false
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_films -> showFilmsFragment(items)
+            R.id.nav_liked -> {
+                val filtered = items.filter { it.isFavorite }
+                showLikedFilmsFragment(filtered as ArrayList<FilmItem>)
+            }
+        }
+        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        drawer.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    private fun showLikedFilmsFragment(items: ArrayList<FilmItem>) {
+        val listFragment = LikedFilmsFragment.newInstance(items)
+        listFragment.listener = this
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, listFragment, LikedFilmsFragment.TAG)
+            .commit()
+        navigationView?.setCheckedItem(R.id.nav_liked)
+    }
+
+    private fun showFilmsFragment(items: ArrayList<FilmItem>) {
+        val listFragment = FilmListFragment.newInstance(items)
+        listFragment.listener = this
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, listFragment, FilmListFragment.TAG)
+            .commit()
+        navigationView?.setCheckedItem(R.id.nav_films)
     }
 }

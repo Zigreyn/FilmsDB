@@ -1,4 +1,4 @@
-package com.example.filmsdb
+package com.example.filmsdb.model
 
 import android.os.Parcel
 import android.os.Parcelable
