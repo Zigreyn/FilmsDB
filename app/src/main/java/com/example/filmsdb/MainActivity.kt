@@ -3,74 +3,83 @@ package com.example.filmsdb
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.Switch
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 
 private const val LAST_SELECTED_FILM = "last_selected_film"
 
-class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback {
-
-    private lateinit var ep5Header: TextView
-    private lateinit var ep7Header: TextView
-    private lateinit var ep8Header: TextView
+class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback, ItemClickListener {
 
     private var lastSelectedFilm: Int = 0
+    private lateinit var items: ArrayList<FilmItem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         if (IS_DARK_MODE) setTheme(R.style.DarkTheme)
-
+        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        ep5Header = findViewById(R.id.ep_5_header)
-        ep7Header = findViewById(R.id.ep_7_header)
-        ep8Header = findViewById(R.id.ep_8_header)
+        items = arrayListOf(
+            FilmItem(
+                getString(R.string.ep_1_header),
+                getString(R.string.ep_1_description),
+                R.drawable.episode_1,
+                "Фантастика",
+                false
+            ),
+            FilmItem(
+                getString(R.string.ep_2_header),
+                getString(R.string.ep_2_description),
+                R.drawable.episode_2,
+                "Фантастика",
+                false
+            ),
+            FilmItem(
+                getString(R.string.ep_3_header),
+                getString(R.string.ep_3_description),
+                R.drawable.episode_3,
+                "Фантастика",
+                false
+            ),
+            FilmItem(
+                getString(R.string.ep_5_header),
+                getString(R.string.ep_5_description),
+                R.drawable.episode_5,
+                "Фантастика",
+                false
+            ),
+            FilmItem(
+                getString(R.string.ep_7_header),
+                getString(R.string.ep_7_description),
+                R.drawable.episode_7,
+                "Фантастика",
+                false
+            ),
+            FilmItem(
+                getString(R.string.ep_8_header),
+                getString(R.string.ep_8_description),
+                R.drawable.episode_8,
+                "Фантастика",
+                false
+            )
+        )
 
-        val ep5Button = findViewById<Button>(R.id.ep_5_button)
-        ep5Button.setOnClickListener {
-            lastSelectedFilm = 1
-            updateFilmHeaderColor(lastSelectedFilm)
-            startFilmDescriptionActivity(R.drawable.episode_5, R.string.ep_5_description, this)
-        }
+        initRecycler()
 
-        val ep7Button = findViewById<Button>(R.id.ep_7_button)
-        ep7Button.setOnClickListener {
-            lastSelectedFilm = 2
-            updateFilmHeaderColor(lastSelectedFilm)
-            startFilmDescriptionActivity(R.drawable.episode_7, R.string.ep_7_description, this)
-        }
-
-        val ep8Button = findViewById<Button>(R.id.ep_8_button)
-        ep8Button.setOnClickListener {
-            lastSelectedFilm = 3
-            updateFilmHeaderColor(lastSelectedFilm)
-            startFilmDescriptionActivity(R.drawable.episode_8, R.string.ep_8_description, this)
-        }
-
+        nightMode?.isChecked = IS_DARK_MODE
         nightMode?.setOnClickListener { view ->
-            if (view is Switch) {
-                IS_DARK_MODE = view.isChecked
-            }
+            view as Switch
+            IS_DARK_MODE = view.isChecked
             recreate()
         }
-    }
-
-    private fun startFilmDescriptionActivity(
-        imageId: Int,
-        filmDescription: Int,
-        activity: Activity
-    ) {
-        val intent = Intent(activity, FilmInfoActivity::class.java)
-        intent.putExtra(IMAGE_ID, imageId)
-        intent.putExtra(FILM_DESCRIPTION, filmDescription)
-        startActivityForResult(intent, FILM_INFO_REQUEST_CODE)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -81,7 +90,6 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback {
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         lastSelectedFilm = savedInstanceState.getInt(LAST_SELECTED_FILM)
-        updateFilmHeaderColor(lastSelectedFilm)
     }
 
     override fun onActivityResult(
@@ -100,26 +108,45 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback {
 
             Log.d("Home Work", "Понравился фильм: $isLiked")
             Log.d("Home Work", "Комментрай к фильму: $filmComment")
+        } else if (requestCode == FILM_FAVORITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+
+            val likedFilms: ArrayList<FilmItem> =
+                (data?.getParcelableArrayListExtra<FilmItem>(FavoriteFilmsActivity.FAVORITE_FILMS)) as ArrayList
+            revalidateFilmList(likedFilms)
+            filmRecycler.adapter?.notifyDataSetChanged()
         }
     }
 
-    private fun updateFilmHeaderColor(header: Int) {
-        when (header) {
-            1 -> {
-                ep5Header.setTextColor(Color.BLUE)
-                ep7Header.setTextColor(Color.BLACK)
-                ep8Header.setTextColor(Color.BLACK)
-            }
-            2 -> {
-                ep5Header.setTextColor(Color.BLACK)
-                ep7Header.setTextColor(Color.BLUE)
-                ep8Header.setTextColor(Color.BLACK)
-            }
-            3 -> {
-                ep5Header.setTextColor(Color.BLACK)
-                ep7Header.setTextColor(Color.BLACK)
-                ep8Header.setTextColor(Color.BLUE)
-            }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.favorite_films) {
+            val filtered = items.filter { it.isFavorite }
+            FavoriteFilmsActivity.startFavoriteFilmsActivity(filtered as ArrayList<FilmItem>, this)
+        }
+        return true
+    }
+
+    private fun initRecycler() {
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        val filmsAdapter = FilmsAdapter(LayoutInflater.from(this), items, this)
+        filmRecycler?.layoutManager = layoutManager
+        filmRecycler?.adapter = filmsAdapter
+        filmRecycler.addItemDecoration(
+            ItemDecoration(
+                this as Activity, 80,
+                80
+            )
+        )
+//        filmRecycler?.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+    }
+
+    private fun revalidateFilmList(favoriteFilms: ArrayList<FilmItem>) {
+        items.forEach {
+            if (!favoriteFilms.contains(it)) it.isFavorite = false
         }
     }
 
@@ -132,13 +159,21 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback {
         finish()
     }
 
-    override fun onClickNegativeButton() {
+    override fun onClickNegativeButton() {}
+
+    override fun onItemClick(position: Int, view: View) {
+        FilmInfoActivity.startFilmDescriptionActivity(items[position], this)
     }
+
+    override fun onLikeClick(position: Int, isChecked: Boolean) {
+        items[position].isFavorite = isChecked
+    }
+
+    override fun onRemoveClick(position: Int) {}
 
     companion object {
         const val FILM_INFO_REQUEST_CODE = 1
-        const val IMAGE_ID = "image_id"
-        const val FILM_DESCRIPTION = "film_description"
+        const val FILM_FAVORITE_REQUEST_CODE = 2
         const val IS_FILM_LIKED = "is_film_liked"
         const val FILM_COMMENT = "film_comment"
         var IS_DARK_MODE = false

@@ -6,13 +6,17 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 
-class CustomDialog(context: Context, private val description: String, private val dialogCallback: IDialogCallback) : Dialog(context) {
+class CustomDialog(
+    context: Context,
+    private val description: String,
+    private val dialogCallback: IDialogCallback
+) : Dialog(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dialog_custom)
 
-        val dialogDescription =  findViewById<TextView>(R.id.dialog_description)
+        val dialogDescription = findViewById<TextView>(R.id.dialog_description)
         dialogDescription.text = description
 
         val negativeButton = findViewById<Button>(R.id.dialog_negative_button)
@@ -28,7 +32,8 @@ class CustomDialog(context: Context, private val description: String, private va
         }
     }
 
-    interface IDialogCallback{
+    interface IDialogCallback {
+
         fun onClickPositiveButton()
 
         fun onClickNegativeButton()

@@ -7,4 +7,6 @@
     <string name="dialog_button_no">No</string>
     <string name="dialog_button_yes">Yes</string>
     <string name="dialog_header">Warning!</string>
+    <string name="film_comment">Comment</string>
+    <string name="menu_item_favorites">Favorite films</string>
 </resources>
