@@ -1,12 +1,14 @@
-package com.example.filmsdb
+package com.example.filmsdb.recycler
 
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.ToggleButton
 import androidx.recyclerview.widget.RecyclerView
+import com.example.filmsdb.model.FilmItem
+import com.example.filmsdb.R
 
-class FilmViewHolder(itemView: View, private val clickListener: ItemClickListener) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+class FilmViewHolder(itemView: View, private val clickListener: ItemClickListener?) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
     private val filmImageView: ImageView = itemView.findViewById(R.id.filmImageView)
     private val filmHeader: TextView = itemView.findViewById(R.id.filmHeaderView)
@@ -18,16 +20,17 @@ class FilmViewHolder(itemView: View, private val clickListener: ItemClickListene
     }
 
     override fun onClick(view: View) {
-        clickListener.onItemClick(adapterPosition, view)
+        clickListener?.onItemClick(adapterPosition)
     }
 
-    fun bind(filmItem: FilmItem) {
-        filmHeader.text = filmItem.name
-        filmGenre.text = filmItem.genre
-        filmImageView.setImageResource(filmItem.imageId)
-        addFavoriteButton.isChecked = filmItem.isFavorite
+    fun bind(filmItem: FilmItem?) {
+        filmHeader.text = filmItem?.name
+        filmGenre.text = filmItem?.genre
+        filmItem?.imageId?.let { filmImageView.setImageResource(it) }
+        addFavoriteButton.isChecked = filmItem?.isFavorite ?: false
+
         addFavoriteButton.setOnCheckedChangeListener { _, isChecked ->
-            clickListener.onLikeClick(adapterPosition, isChecked)
+            clickListener?.onLikeClick(adapterPosition, isChecked)
         }
     }
 }
