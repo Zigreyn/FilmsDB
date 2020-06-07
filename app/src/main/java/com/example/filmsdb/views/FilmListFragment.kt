@@ -12,7 +12,6 @@ import com.example.filmsdb.model.FilmItem
 import com.example.filmsdb.recycler.FilmsListAdapter
 import com.example.filmsdb.recycler.ItemClickListener
 import kotlinx.android.synthetic.main.fragment_film_list.*
-import java.text.FieldPosition
 
 
 class FilmListFragment : Fragment() {
@@ -58,7 +57,7 @@ class FilmListFragment : Fragment() {
         )
     }
 
-    fun notifyAdapter(position: Int ){
+    fun notifyAdapter(position: Int) {
         filmsAdapter.notifyItemChanged(position)
     }
 

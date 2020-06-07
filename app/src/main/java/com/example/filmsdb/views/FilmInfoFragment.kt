@@ -3,6 +3,7 @@ package com.example.filmsdb.views
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -21,6 +22,7 @@ class FilmInfoFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         item = arguments?.getParcelable(ITEM)
+        (activity as AppCompatActivity).supportActionBar?.hide()
     }
 
     override fun onCreateView(
@@ -37,15 +39,27 @@ class FilmInfoFragment : Fragment() {
 
         val toolbar = view.findViewById<Toolbar>(R.id.fragment_toolbar)
         toolbar.title = item?.name ?: "none"
-
-        (activity as AppCompatActivity?)?.setSupportActionBar(toolbar)
-        (activity as AppCompatActivity?)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+        toolbar.setNavigationOnClickListener {
+            activity?.onBackPressed()
+        }
         val description = view.findViewById<TextView>(R.id.description)
         description.text = item?.description ?: "none"
     }
 
-    companion object{
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            activity?.onBackPressed()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDestroyView() {
+        (activity as AppCompatActivity).supportActionBar?.show()
+        super.onDestroyView()
+    }
+
+    companion object {
 
         private const val ITEM = "item"
 

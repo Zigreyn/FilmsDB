@@ -10,13 +10,9 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.ListFragment
 import com.example.filmsdb.model.FilmItem
 import com.example.filmsdb.recycler.ItemClickListener
-import com.example.filmsdb.views.CustomDialog
-import com.example.filmsdb.views.FilmInfoFragment
-import com.example.filmsdb.views.FilmListFragment
-import com.example.filmsdb.views.LikedFilmsFragment
+import com.example.filmsdb.views.*
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 
@@ -26,7 +22,6 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback,
     private lateinit var items: ArrayList<FilmItem>
     private var navigationView: NavigationView? = null
     private var drawer: DrawerLayout? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -122,9 +117,10 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback,
     override fun onClickNegativeButton() {}
 
     override fun onItemClick(position: Int) {
+        val fragment: FilmInfoFragment =  FilmInfoFragment.newInstance(items[position])
         supportFragmentManager.beginTransaction()
-            .replace(R.id.container, FilmInfoFragment.newInstance(items[position]))
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .replace(R.id.container,fragment)
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             .addToBackStack(null)
             .commit()
     }
@@ -164,19 +160,19 @@ class MainActivity : AppCompatActivity(), CustomDialog.IDialogCallback,
     }
 
     private fun showLikedFilmsFragment(items: ArrayList<FilmItem>) {
-        val listFragment = LikedFilmsFragment.newInstance(items)
-        listFragment.listener = this
+        val fragment = LikedFilmsFragment.newInstance(items)
+        fragment.listener = this
         supportFragmentManager.beginTransaction()
-            .replace(R.id.container, listFragment, LikedFilmsFragment.TAG)
+            .replace(R.id.container, fragment, LikedFilmsFragment.TAG)
             .commit()
         navigationView?.setCheckedItem(R.id.nav_liked)
     }
 
     private fun showFilmsFragment(items: ArrayList<FilmItem>) {
-        val listFragment = FilmListFragment.newInstance(items)
-        listFragment.listener = this
+        val fragment = FilmListFragment.newInstance(items)
+        fragment.listener = this
         supportFragmentManager.beginTransaction()
-            .replace(R.id.container, listFragment, FilmListFragment.TAG)
+            .replace(R.id.container, fragment, FilmListFragment.TAG)
             .commit()
         navigationView?.setCheckedItem(R.id.nav_films)
     }
