@@ -1,6 +1,7 @@
 package com.example.filmsdb.views
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +10,14 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.filmsdb.R
 import com.example.filmsdb.model.FilmItem
+import com.example.filmsdb.model.FilmListResponse
 import com.example.filmsdb.recycler.FilmsListAdapter
 import com.example.filmsdb.recycler.ItemClickListener
 import kotlinx.android.synthetic.main.fragment_film_list.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import com.example.filmsdb.MovieApiClient
 
 
 class FilmListFragment : Fragment() {
@@ -22,9 +28,9 @@ class FilmListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
+/*        arguments?.let {
             items = it.getParcelableArrayList(ITEMS)
-        }
+        }*/
     }
 
     override fun onCreateView(
@@ -37,6 +43,23 @@ class FilmListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecycler()
+
+
+        val call = MovieApiClient.apiClient.getTopRatedMovies(API_KEY, "ru")
+
+        call.enqueue(object : Callback<FilmListResponse> {
+            override fun onResponse(
+                call: Call<FilmListResponse>, response: Response<FilmListResponse>
+            ) {
+               items = response.body()!!.results as ArrayList<FilmItem>
+                filmsAdapter.notifyDataSetChanged()
+            }
+
+            override fun onFailure(call: Call<FilmListResponse>, t: Throwable) {
+                Log.e(TAG, t.toString())
+            }
+        })
+
     }
 
     private fun initRecycler() {
@@ -66,6 +89,7 @@ class FilmListFragment : Fragment() {
 
         private const val ITEMS = "items"
         const val TAG = "FilmListFragment"
+        private const val API_KEY = "750ead228c9ee2670b957162f0cc62b5"
 
         @JvmStatic
         fun newInstance(items: ArrayList<FilmItem>) =
